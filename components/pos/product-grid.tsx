@@ -1,120 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Product } from "@/types/product"
 import Image from "next/image"
 import { formatCurrency } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Settings } from "lucide-react"
-
-// Mock data
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    name: "Coffee",
-    description: "Freshly brewed coffee",
-    price: 2.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Beverages",
-    barcode: "123456789",
-    sku: "BEV001",
-    stockQuantity: 100,
-    isPopular: true,
-    hasModifiers: true,
-  },
-  {
-    id: "2",
-    name: "Sandwich",
-    description: "Turkey and cheese sandwich",
-    price: 5.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Food",
-    barcode: "223456789",
-    sku: "FOOD001",
-    stockQuantity: 20,
-    isPopular: true,
-    hasModifiers: true,
-  },
-  {
-    id: "3",
-    name: "Headphones",
-    description: "Wireless headphones",
-    price: 99.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Electronics",
-    barcode: "323456789",
-    sku: "ELEC001",
-    stockQuantity: 15,
-    isPopular: false,
-    hasModifiers: false,
-  },
-  {
-    id: "4",
-    name: "T-Shirt",
-    description: "Cotton t-shirt",
-    price: 19.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Clothing",
-    barcode: "423456789",
-    sku: "CLOTH001",
-    stockQuantity: 50,
-    isPopular: false,
-    hasModifiers: false,
-  },
-  {
-    id: "5",
-    name: "Mug",
-    description: "Ceramic mug",
-    price: 9.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Home Goods",
-    barcode: "523456789",
-    sku: "HOME001",
-    stockQuantity: 30,
-    isPopular: true,
-    hasModifiers: false,
-  },
-  {
-    id: "6",
-    name: "Soda",
-    description: "Carbonated soft drink",
-    price: 1.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Beverages",
-    barcode: "623456789",
-    sku: "BEV002",
-    stockQuantity: 200,
-    isPopular: true,
-    hasModifiers: true,
-  },
-  {
-    id: "7",
-    name: "Salad",
-    description: "Fresh garden salad",
-    price: 7.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Food",
-    barcode: "723456789",
-    sku: "FOOD002",
-    stockQuantity: 15,
-    isPopular: false,
-    hasModifiers: true,
-  },
-  {
-    id: "8",
-    name: "Phone Charger",
-    description: "USB-C phone charger",
-    price: 14.99,
-    image: "/placeholder.svg?height=100&width=100",
-    category: "Electronics",
-    barcode: "823456789",
-    sku: "ELEC002",
-    stockQuantity: 25,
-    isPopular: false,
-    hasModifiers: false,
-  },
-]
+import { usePosContext } from "@/context/pos-context"
 
 interface ProductGridProps {
   category?: string
@@ -124,32 +16,38 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ category = "All", searchQuery = "", popular = false, onAddToCart }: ProductGridProps) {
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const { products, productsLoading, getProductsByCategory, getPopularProducts } = usePosContext()
 
-  useEffect(() => {
-    let filtered = [...mockProducts]
+  // Filter products based on props
+  let filteredProducts: Product[] = []
 
-    if (popular) {
-      filtered = filtered.filter((product) => product.isPopular)
-    }
+  if (productsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading products...</p>
+      </div>
+    )
+  }
 
-    if (category !== "All") {
-      filtered = filtered.filter((product) => product.category === category)
-    }
+  if (popular) {
+    filteredProducts = getPopularProducts()
+  } else if (category !== "All") {
+    filteredProducts = getProductsByCategory(category)
+  } else {
+    filteredProducts = products
+  }
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(query) ||
-          product.description.toLowerCase().includes(query) ||
-          product.sku.toLowerCase().includes(query) ||
-          product.barcode.includes(query),
-      )
-    }
-
-    setFilteredProducts(filtered)
-  }, [category, searchQuery, popular])
+  // Apply search filter
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase()
+    filteredProducts = filteredProducts.filter(
+      (product) =>
+        product.name.toLowerCase().includes(query) ||
+        product.description.toLowerCase().includes(query) ||
+        product.sku?.toLowerCase().includes(query) ||
+        product.barcode?.includes(query),
+    )
+  }
 
   if (filteredProducts.length === 0) {
     return (

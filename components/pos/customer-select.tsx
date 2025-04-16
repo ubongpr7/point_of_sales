@@ -6,31 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input"
 import type { Customer } from "@/types/customer"
 import { Search, User, UserPlus } from "lucide-react"
-
-// Mock data
-const mockCustomers: Customer[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "555-1234",
-    loyaltyPoints: 120,
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "555-5678",
-    loyaltyPoints: 85,
-  },
-  {
-    id: "3",
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    phone: "555-9012",
-    loyaltyPoints: 200,
-  },
-]
+import { usePosContext } from "@/context/pos-context"
 
 interface CustomerSelectProps {
   selectedCustomer: Customer | null
@@ -40,15 +16,16 @@ interface CustomerSelectProps {
 export function CustomerSelect({ selectedCustomer, onSelectCustomer }: CustomerSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const { customers, customersLoading } = usePosContext()
 
   const filteredCustomers = searchQuery
-    ? mockCustomers.filter(
+    ? customers.filter(
         (customer) =>
           customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           customer.phone.includes(searchQuery),
       )
-    : mockCustomers
+    : customers
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -73,7 +50,11 @@ export function CustomerSelect({ selectedCustomer, onSelectCustomer }: CustomerS
           />
         </div>
         <div className="max-h-72 overflow-y-auto">
-          {filteredCustomers.length > 0 ? (
+          {customersLoading ? (
+            <div className="py-6 text-center">
+              <p className="text-muted-foreground">Loading customers...</p>
+            </div>
+          ) : filteredCustomers.length > 0 ? (
             <div className="space-y-2">
               {filteredCustomers.map((customer) => (
                 <Button

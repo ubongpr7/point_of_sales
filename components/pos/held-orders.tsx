@@ -8,10 +8,18 @@ import { Clock, User, MapPin } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 
 export function HeldOrders() {
-  const { activeOrders, recallOrder } = usePosContext()
+  const { activeOrders, recallOrder, ordersLoading } = usePosContext()
 
   // Filter only held orders (those with status "open")
   const heldOrders = activeOrders.filter((order) => order.status === "open")
+
+  if (ordersLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading orders...</p>
+      </div>
+    )
+  }
 
   if (heldOrders.length === 0) {
     return (

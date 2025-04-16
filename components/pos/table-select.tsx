@@ -17,7 +17,7 @@ interface TableSelectProps {
 
 export function TableSelect({ selectedTable, onSelectTable }: TableSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const { tables } = usePosContext()
+  const { tables, tablesLoading } = usePosContext()
   const [viewMode, setViewMode] = useState<"list" | "grid" | "map">("grid")
 
   // Group tables by section
@@ -89,7 +89,11 @@ export function TableSelect({ selectedTable, onSelectTable }: TableSelectProps) 
           </div>
         </div>
 
-        {viewMode === "list" && (
+        {tablesLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading tables...</p>
+          </div>
+        ) : viewMode === "list" && sections.length > 0 ? (
           <div className="max-h-96 overflow-y-auto">
             <Tabs defaultValue={sections[0]}>
               <TabsList className="w-full flex">
@@ -135,9 +139,7 @@ export function TableSelect({ selectedTable, onSelectTable }: TableSelectProps) 
               ))}
             </Tabs>
           </div>
-        )}
-
-        {viewMode === "grid" && (
+        ) : viewMode === "grid" && sections.length > 0 ? (
           <div className="max-h-96 overflow-y-auto">
             <Tabs defaultValue={sections[0]}>
               <TabsList className="w-full flex">
@@ -177,13 +179,15 @@ export function TableSelect({ selectedTable, onSelectTable }: TableSelectProps) 
               ))}
             </Tabs>
           </div>
-        )}
-
-        {viewMode === "map" && (
+        ) : viewMode === "map" ? (
           <div className="h-96 border rounded-md p-4 relative">
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               Floor plan view would be implemented here
             </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">No tables found</p>
           </div>
         )}
       </DialogContent>
