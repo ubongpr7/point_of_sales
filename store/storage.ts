@@ -1,7 +1,8 @@
-// Simple storage implementation that works in both browser and server environments
+// Storage implementation that's safe for SSR
 const createStorage = () => {
+  // Always return a consistent API shape
   if (typeof window === "undefined") {
-    // Return a no-op storage for server-side
+    // Server-side - return no-op storage
     return {
       getItem: () => Promise.resolve(null),
       setItem: () => Promise.resolve(),
@@ -9,13 +10,14 @@ const createStorage = () => {
     }
   }
 
-  // Use localStorage in the browser
+  // Client-side - use localStorage
   return {
     getItem: (key: string) => {
       try {
         const item = window.localStorage.getItem(key)
         return Promise.resolve(item)
       } catch (error) {
+        console.error("Error accessing localStorage:", error)
         return Promise.resolve(null)
       }
     },
@@ -24,6 +26,7 @@ const createStorage = () => {
         window.localStorage.setItem(key, value)
         return Promise.resolve()
       } catch (error) {
+        console.error("Error writing to localStorage:", error)
         return Promise.resolve()
       }
     },
@@ -32,6 +35,7 @@ const createStorage = () => {
         window.localStorage.removeItem(key)
         return Promise.resolve()
       } catch (error) {
+        console.error("Error removing from localStorage:", error)
         return Promise.resolve()
       }
     },

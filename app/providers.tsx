@@ -6,6 +6,23 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { PosProvider } from "@/context/pos-context"
 import StoreProvider from "@/store/provider"
 import { setupSyncListener } from "@/services/syncService"
+import { useAppSelector } from "@/store/store"
+
+// Separate component for theme to access Redux store
+function ThemeProviderWithRedux({ children }: { children: React.ReactNode }) {
+  const isDarkMode = useAppSelector((state) => state.global.isDarkMode)
+
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme={isDarkMode ? "dark" : "light"}
+      enableSystem={false}
+      disableTransitionOnChange
+    >
+      {children}
+    </ThemeProvider>
+  )
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -17,9 +34,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <StoreProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ThemeProviderWithRedux>
         <PosProvider>{children}</PosProvider>
-      </ThemeProvider>
+      </ThemeProviderWithRedux>
     </StoreProvider>
   )
 }
+
